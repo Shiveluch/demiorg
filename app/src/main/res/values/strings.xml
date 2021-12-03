@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">DemiORG</string>
+    <string name="api">KHG04SR6CBHiNiZMB2ZpZQ==</string>
+    <string name="action_settings">Дополнительно</string>
+    <string name="drawer_item_home">События</string>
+    <string name="drawer_item_free_play">Мои мероприятия</string>
+    <string name="drawer_item_custom">Custom</string>
+    <string name="drawer_item_settings">Дополнительно</string>
+    <string name="drawer_item_contact">Контакты организатора</string>
+    <string name="drawer_item_help">Выход</string>
+</resources>
