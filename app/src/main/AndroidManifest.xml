@@ -6,9 +6,9 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/demiorg_icon"
+        android:icon="@drawable/demiorg_icon"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/demiorg_icon"
+        android:roundIcon="@drawable/demiorg_icon"
         android:supportsRtl="true"
         android:hardwareAccelerated="false"
         android:usesCleartextTraffic="true"

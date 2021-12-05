@@ -76,7 +76,7 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
     TextView toolbartext, asplayer, asmaster, startanket, approvelogin,
                 mastername, masterapprove;
     EditText anketname, anketphone, anketemail, anketaddinfo;
-    ListView maineventslist, maineventslistinfo;
+    ListView maineventslist, maineventslistinfo, eventinfo;
     LinearLayout mainEventLL;
     private static final int RC_SIGN_INplayer = 007;
     private static final int RC_SIGN_INmaster = 001;
@@ -88,6 +88,8 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
     String getmaster, getplayer;
     String email;
     String getOnlyEvent="http://a0568345.xsph.ru/demiorg/getonlyevent.php";
+    String geteventinfo="";
+    String eventID;
 
     RelativeLayout anketa, masterLL, playerLL;
     boolean status=false;
@@ -151,6 +153,7 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
         mainEventLL= findViewById(R.id.mainevent);
         String status=settings.getString(STATUS,"");
         masterLL.setVisibility(View.GONE);
+        eventinfo = findViewById(R.id.eventinfo);
 
 
         if (status.length()==0)
@@ -185,10 +188,11 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                     TextView isID=view.findViewById(R.id.eventid);
-                    String getID = isID.getText().toString();
-
-
-                }
+                    eventID = isID.getText().toString();
+                    geteventinfo="http://a0568345.xsph.ru/demiorg/geteventinfo.php/get.php?dp="+eventID;
+                    sOut(geteventinfo);
+                    getJSON(geteventinfo);
+                                    }
             });
             NavMasterPanel();
         }
@@ -239,110 +243,110 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    private void NavPlayerPanel()
-    {
-
-        Drawer.Result build = new Drawer()
-                .withActivity(this)
-                .withToolbar(toolbar)
-                .withActionBarDrawerToggle(true)
-                .withHeader(R.layout.drawer_header)
-                .addDrawerItems(
-                        new PrimaryDrawerItem().withName(R.string.drawer_item_home).withIcon(getResources().getDrawable( R.drawable.header)).withIdentifier(1),
-                        new PrimaryDrawerItem().withName(R.string.drawer_item_free_play).withIcon(FontAwesome.Icon.faw_map_marker),
-                        new SectionDrawerItem().withName(R.string.drawer_item_settings),
-                        new SecondaryDrawerItem().withName(R.string.drawer_item_help).withIcon(FontAwesome.Icon.faw_question),
-                        new DividerDrawerItem(),
-                        new SecondaryDrawerItem().withName(R.string.drawer_item_contact).withIcon(FontAwesome.Icon.faw_phone).withIdentifier(1)
-                )
-                .withOnDrawerListener(new Drawer.OnDrawerListener() {
-                    @Override
-                    public void onDrawerOpened(View drawerView) {
-//                        if (drawerView!=null) {
-//                            InputMethodManager inputMethodManager = (InputMethodManager) MainActivity.this.getSystemService(Activity.INPUT_METHOD_SERVICE);
-//                            if (inputMethodManager != null) {
-//                                inputMethodManager.hideSoftInputFromWindow(MainActivity.this.getCurrentFocus().getWindowToken(), 0);
+//    private void NavPlayerPanel()
+//    {
+//
+//        Drawer.Result build = new Drawer()
+//                .withActivity(this)
+//                .withToolbar(toolbar)
+//                .withActionBarDrawerToggle(true)
+//                .withHeader(R.layout.drawer_header)
+//                .addDrawerItems(
+//                        new PrimaryDrawerItem().withName(R.string.drawer_item_home).withIcon(getResources().getDrawable( R.drawable.header)).withIdentifier(1),
+//                        new PrimaryDrawerItem().withName(R.string.drawer_item_free_play).withIcon(FontAwesome.Icon.faw_map_marker),
+//                        new SectionDrawerItem().withName(R.string.drawer_item_settings),
+//                        new SecondaryDrawerItem().withName(R.string.drawer_item_help).withIcon(FontAwesome.Icon.faw_question),
+//                        new DividerDrawerItem(),
+//                        new SecondaryDrawerItem().withName(R.string.drawer_item_contact).withIcon(FontAwesome.Icon.faw_phone).withIdentifier(1)
+//                )
+//                .withOnDrawerListener(new Drawer.OnDrawerListener() {
+//                    @Override
+//                    public void onDrawerOpened(View drawerView) {
+////                        if (drawerView!=null) {
+////                            InputMethodManager inputMethodManager = (InputMethodManager) MainActivity.this.getSystemService(Activity.INPUT_METHOD_SERVICE);
+////                            if (inputMethodManager != null) {
+////                                inputMethodManager.hideSoftInputFromWindow(MainActivity.this.getCurrentFocus().getWindowToken(), 0);
+////                            }
+////                        }
+//                    }
+//                    @Override
+//                    public void onDrawerClosed(View drawerView) {
+//                    }
+//                })
+//                .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
+//                    @Override
+//                    // Обработка клика
+//                    public void onItemClick(AdapterView<?> parent, View view, int position, long id, IDrawerItem drawerItem) {
+//                        if (drawerItem instanceof Nameable) {
+//                            sOut (""+position);
+//                            if (position==1)
+//                            {
+////                                locationLL.setVisibility(View.GONE);
+////                                eventsLL.setVisibility(View.VISIBLE);
+////                                getJSON(getEvents);
+////                                textheader.setText("МЕРОПРИЯТИЯ");
+//                                sOut (""+position);
 //                            }
-//                        }
-                    }
-                    @Override
-                    public void onDrawerClosed(View drawerView) {
-                    }
-                })
-                .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
-                    @Override
-                    // Обработка клика
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id, IDrawerItem drawerItem) {
-                        if (drawerItem instanceof Nameable) {
-                            sOut (""+position);
-                            if (position==1)
-                            {
-//                                locationLL.setVisibility(View.GONE);
-//                                eventsLL.setVisibility(View.VISIBLE);
-//                                getJSON(getEvents);
-//                                textheader.setText("МЕРОПРИЯТИЯ");
-                                sOut (""+position);
-                            }
-
-                            if (position==2)
-                            {
-//                                locationLL.setVisibility(View.VISIBLE);
-//                                eventsLL.setVisibility(View.GONE);
-//                                getJSON(getLocations);
-//                                Log.d ("data", getLocations);
-//                                textheader.setText("ПОЛИГОНЫ/ЛОКАЦИИ");
-
-
-                            }
-
-                            if (position==6)
-                            {
-                                SharedPreferences.Editor editor = settings.edit();
-                                editor.clear();
-                                editor.apply();
-                                Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
-                                        new ResultCallback<Status>() {
-                                            @Override
-                                            public void onResult(Status status) {
-                                                sendToast("Выгрузка закончена");
-                                                toolbar.setVisibility(View.GONE);
-                                                anketa.setVisibility(View.VISIBLE);
-                                                masterLL.setVisibility(View.GONE);sOut("295");
-                                            }
-                                        });
-
-                            }
-                            // Toast.makeText(MainActivity.this, MainActivity.this.getString(((Nameable) drawerItem).getNameRes()), Toast.LENGTH_SHORT).show();
-                        }
-//                        if (drawerItem instanceof Badgeable) {
-//                            Badgeable badgeable = (Badgeable) drawerItem;
-//                            if (badgeable.getBadge() != null) {
-//                                // учтите, не делайте так, если ваш бейдж содержит символ "+"
-//                                try {
-//                                    int badge = Integer.valueOf(badgeable.getBadge());
-//                                    if (badge > 0) {
-//                                        drawerResult.updateBadge(String.valueOf(badge - 1), position);
-//                                    }
-//                                } catch (Exception e) {
-//                                    Log.d("test", "Не нажимайте на бейдж, содержащий плюс! :)");
-//                                }
+//
+//                            if (position==2)
+//                            {
+////                                locationLL.setVisibility(View.VISIBLE);
+////                                eventsLL.setVisibility(View.GONE);
+////                                getJSON(getLocations);
+////                                Log.d ("data", getLocations);
+////                                textheader.setText("ПОЛИГОНЫ/ЛОКАЦИИ");
+//
+//
 //                            }
+//
+//                            if (position==6)
+//                            {
+//                                SharedPreferences.Editor editor = settings.edit();
+//                                editor.clear();
+//                                editor.apply();
+//                                Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
+//                                        new ResultCallback<Status>() {
+//                                            @Override
+//                                            public void onResult(Status status) {
+//                                                sendToast("Выгрузка закончена");
+//                                                toolbar.setVisibility(View.GONE);
+//                                                anketa.setVisibility(View.VISIBLE);
+//                                                masterLL.setVisibility(View.GONE);sOut("295");
+//                                            }
+//                                        });
+//
+//                            }
+//                            // Toast.makeText(MainActivity.this, MainActivity.this.getString(((Nameable) drawerItem).getNameRes()), Toast.LENGTH_SHORT).show();
 //                        }
-                    }
-                })
-                .withOnDrawerItemLongClickListener(new Drawer.OnDrawerItemLongClickListener() {
-                    @Override
-                    // Обработка длинного клика, например, только для SecondaryDrawerItem
-                    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id, IDrawerItem drawerItem) {
-                        if (drawerItem instanceof SecondaryDrawerItem) {
-                        }
-                        return false;
-                    }
-                })
-                .build();
-
-
-    }
+////                        if (drawerItem instanceof Badgeable) {
+////                            Badgeable badgeable = (Badgeable) drawerItem;
+////                            if (badgeable.getBadge() != null) {
+////                                // учтите, не делайте так, если ваш бейдж содержит символ "+"
+////                                try {
+////                                    int badge = Integer.valueOf(badgeable.getBadge());
+////                                    if (badge > 0) {
+////                                        drawerResult.updateBadge(String.valueOf(badge - 1), position);
+////                                    }
+////                                } catch (Exception e) {
+////                                    Log.d("test", "Не нажимайте на бейдж, содержащий плюс! :)");
+////                                }
+////                            }
+////                        }
+//                    }
+//                })
+//                .withOnDrawerItemLongClickListener(new Drawer.OnDrawerItemLongClickListener() {
+//                    @Override
+//                    // Обработка длинного клика, например, только для SecondaryDrawerItem
+//                    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id, IDrawerItem drawerItem) {
+//                        if (drawerItem instanceof SecondaryDrawerItem) {
+//                        }
+//                        return false;
+//                    }
+//                })
+//                .build();
+//
+//
+//    }
 
 
     private void NavMasterPanel()
@@ -628,6 +632,8 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
 
                         if (urlWebService == getOnlyEvent) {loadOnlyEvent(s);}
 
+                        if (urlWebService == geteventinfo) {loadeventinfo(s);}
+
 
 
 
@@ -771,7 +777,7 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
            {
                JSONObject obj = jsonArray.getJSONObject(i);
                id[i] = obj.getString("field1");
-               name[i] = obj.getString("field2");
+               name[i] = DTS(obj.getString("field2"));
                info[i] = obj.getString("field3");
                mainLists.add(new MainList(id[i], name[i], info[i]));
                sOut("positionID: " + mainLists.get(i).id);
@@ -782,6 +788,43 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
            maineventslist.setAdapter(mainListAdapter);
 
         }
+
+
+
+    }
+
+
+    private void loadeventinfo(String json) throws JSONException {
+        JSONArray jsonArray = new JSONArray(json);
+        sOut("" + jsonArray);
+        dataFourAdapter dataFourAdapter;
+        ArrayList<dataFour> dataFours = new ArrayList<>();
+        if (jsonArray.length() == 0) {
+            return;
+        }
+        if (jsonArray.length() > 0) {
+
+            JSONObject obj = jsonArray.getJSONObject(0);
+            String data = DTS(obj.getString("field1"));
+            sOut("" + data);
+            dataFours.add(new dataFour("", "Событие: ", data, ""));
+            data = obj.getString("field2");
+            dataFours.add(new dataFour("", "Время проведения: ", data, ""));
+            data = DTS(obj.getString("field3"));
+            dataFours.add(new dataFour("", "Описание: ", data, ""));
+            data = obj.getString("field4");
+            dataFours.add(new dataFour("", "Место проведения: ", data, ""));
+            data = obj.getString("field5");
+            dataFours.add(new dataFour("", "Открыть на GoogleMaps ", "", data));
+            data = obj.getString("field6");
+            dataFours.add(new dataFour("", "Контакты организатора:", DTS(data), ""));
+            data = obj.getString("field7");
+            dataFours.add(new dataFour(DTS(data), "Показать план размещения", "", ""));
+        }
+
+        dataFourAdapter =new dataFourAdapter(context, dataFours,activity);
+        maineventslistinfo.setAdapter(dataFourAdapter);
+
 
 
 
@@ -837,14 +880,14 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    private String  RTS (String s) throws Exception {   byte[] encrypted = new byte[0];
+    private String RTS (String s) throws Exception {   byte[] encrypted = new byte[0];
         encrypted = refact(s,api);
         String rts = Base64.encodeToString(encrypted, Base64.DEFAULT);
         rts= rts.substring(0,rts.length()-1);
         return rts;
     }
 
-    private String  DTS (String s)
+    private String DTS (String s)
     {
         String dts = null;
         try {
