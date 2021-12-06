@@ -15,7 +15,7 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/eventname"
+            android:id="@+id/subeventname"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
@@ -28,7 +28,17 @@
             android:textSize="20sp" />
 
         <TextView
-            android:id="@+id/eventtime"
+            android:id="@+id/subeventinfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_weight="1"
+            android:text="TextView"
+            android:textColor="#000000" />
+
+
+        <TextView
+            android:id="@+id/subeventapproved"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
@@ -38,17 +48,8 @@
 
     </LinearLayout>
 
-    <ImageView
-        android:id="@+id/imageView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_weight="1"
-        app:srcCompat="@android:drawable/ic_menu_search"
-        app:tint="#000000" />
-
     <TextView
-        android:id="@+id/eventid"
+        android:id="@+id/subeventid"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="1"

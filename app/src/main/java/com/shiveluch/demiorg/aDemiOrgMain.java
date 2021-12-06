@@ -7,16 +7,24 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
+import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -74,33 +82,37 @@ import javax.crypto.SecretKey;
 
 public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener {
     TextView toolbartext, asplayer, asmaster, startanket, approvelogin,
-                mastername, masterapprove;
+            mastername, masterapprove;
     EditText anketname, anketphone, anketemail, anketaddinfo;
-    ListView maineventslist, maineventslistinfo, eventinfo;
-    LinearLayout mainEventLL;
+    ListView maineventslist, maineventslistinfo, eventinfo, eventslistformysubevent,
+    mysubeventslist;
+    LinearLayout mainEventLL, mysubeventsLL;
+    Button createnewmysubevent;
     private static final int RC_SIGN_INplayer = 007;
     private static final int RC_SIGN_INmaster = 001;
     private SignInButton signInPlayer, signInMaster;
+    ArrayList<MainList> commonlist = new ArrayList<>();
     Toolbar toolbar;
     Context context;
     Activity activity;
     SecretKey api;
-    String getmaster, getplayer;
+    String getmaster, getplayer, getonlyareas, getmysubevents;
     String email;
-    String getOnlyEvent="http://a0568345.xsph.ru/demiorg/getonlyevent.php";
-    String geteventinfo="";
+    String getOnlyEvent = "http://a0568345.xsph.ru/demiorg/getonlyevent.php";
+    String geteventinfo = "";
     String eventID;
 
     RelativeLayout anketa, masterLL, playerLL;
-    boolean status=false;
+    boolean status = false;
     SharedPreferences settings;
-    public final static String STATUS="status";
-    public final static String FIO="fio";
-    public final static String EMAIL="email";
-    public final static String PHONENUM="phone";
-    public final static String ADDINFO="addinfo";
-    public final static String APPROVED="approved";
-    public final static String DOMAIN="http://a0568345.xsph.ru/demiorg/";
+    public final static String STATUS = "status";
+    public final static String FIO = "fio";
+    public final static String EMAIL = "email";
+    public final static String PHONENUM = "phone";
+    public final static String ADDINFO = "addinfo";
+    public final static String APPROVED = "approved";
+    public final static String ID = "id";
+    public final static String DOMAIN = "http://a0568345.xsph.ru/demiorg/";
     String getLocations;
     private GoogleApiClient mGoogleApiClient;
 
@@ -109,77 +121,148 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.ademiorgmain);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        settings=getSharedPreferences("set",Context.MODE_PRIVATE);
+        settings = getSharedPreferences("set", Context.MODE_PRIVATE);
         api = stringToKey(getResources().getString(R.string.api));
-        context=getApplicationContext();
-        activity=this;
+        context = getApplicationContext();
+        activity = this;
 
         initVisualElements();
-
-        String test = "dsahh\\sasa";
-        sOut("test: "+test);
 
     }
 
     private void initVisualElements() {
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbartext=findViewById(R.id.textheader);
+        toolbartext = findViewById(R.id.textheader);
         signInPlayer = findViewById(R.id.google_signIn1);
         signInMaster = findViewById(R.id.google_signIn2);
         signInPlayer.setOnClickListener(this);
         signInMaster.setOnClickListener(this);
-        anketname=findViewById(R.id.anketname);
-        anketphone=findViewById(R.id.anketphone);
-        anketemail=findViewById(R.id.anketemail);
-        anketaddinfo=findViewById(R.id.anketaddinfo);
+        anketname = findViewById(R.id.anketname);
+        anketphone = findViewById(R.id.anketphone);
+        anketemail = findViewById(R.id.anketemail);
+        anketaddinfo = findViewById(R.id.anketaddinfo);
         anketemail.setEnabled(false);
-        asplayer=findViewById(R.id.asplayer);
+        asplayer = findViewById(R.id.asplayer);
         asmaster = findViewById(R.id.asmaster);
-        startanket= findViewById(R.id.startanket);
+        startanket = findViewById(R.id.startanket);
         asplayer.setOnClickListener(this);
         asmaster.setOnClickListener(this);
-        anketa=findViewById(R.id.authRL);
+        anketa = findViewById(R.id.authRL);
         anketa.setVisibility(View.GONE);
+        mysubeventsLL = findViewById(R.id.mysubeventsLL);
+        mysubeventsLL.setVisibility(View.GONE);
         //toolbar.setBackgroundColor(getResources().getColor(R.color.black));
         toolbar.setVisibility(View.GONE);
         toolbartext.setText("РЕГИСТРАЦИЯ");
-        approvelogin=findViewById(R.id.approvelogin);
+        approvelogin = findViewById(R.id.approvelogin);
         approvelogin.setOnClickListener(this);
         mastername = findViewById(R.id.mastername);
-        masterapprove=findViewById(R.id.masterapprove);
-        masterLL=findViewById(R.id.masterLL);
+        masterapprove = findViewById(R.id.masterapprove);
+        masterLL = findViewById(R.id.masterLL);
         maineventslist = findViewById(R.id.maineventslist);
         maineventslistinfo = findViewById(R.id.maineventslistinfo);
-        mainEventLL= findViewById(R.id.mainevent);
-        String status=settings.getString(STATUS,"");
+        mainEventLL = findViewById(R.id.mainevent);
+        String status = settings.getString(STATUS, "");
         masterLL.setVisibility(View.GONE);
         eventinfo = findViewById(R.id.eventinfo);
+        eventslistformysubevent = findViewById(R.id.eventslistformysubevents);
+        createnewmysubevent = findViewById(R.id.createnewmysubevent);
+        mysubeventslist = findViewById(R.id.mysubeventslist);
+
+        createnewmysubevent.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
 
 
-        if (status.length()==0)
-        {
+
+                String approved=settings.getString(APPROVED,"");
+                if (approved.equals("0"))
+                {
+                    sendToast("Статус мастера не одобрен!");
+                    return;
+                }
+
+                if (eventID.length()<1)
+                {
+                    sendToast("Не выбрано событие");
+                    return;
+                }
+                itemsForEditText.clear();
+                itemsForEditText.add(new MainList("", "Название мероприятия: ", "Новое мероприятие"));
+                itemsForEditText.add(new MainList("", "Продолжительность (мин.)", "0"));
+                itemsForEditText.add(new MainList("", "Минимум участников: ", "0"));
+                itemsForEditText.add(new MainList("", "Максимум участников: ", "0"));
+                itemsForEditText.add(new MainList("", "Ссылка на анонс:", "http://"));
+                itemsForEditText.add(new MainList("", "Правила:", "http://"));
+                itemsForEditText.add(new MainList("", "Сетка ролей:", "http://"));
+                itemsForEditText.add(new MainList("", "Требования:", "Например,  D&D5"));
+                itemsForEditText.add(new MainList("", "Взнос, руб.:", "0"));
+                itemsForEditText.add(new MainList("", "Контакты мастера", "+7(9..)-..."));
+                showListWithEditTextDialog();
+            }
+        });
+
+        eventslistformysubevent.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                TextView isID = findViewById(R.id.eventid);
+                eventID = isID.getText().toString();
+                getmysubevents = "http://a0568345.xsph.ru/demiorg/getsubeventsbymaster.php/get.php?nom="
+                        +settings.getString(ID,"")+"&dp="+eventID;
+                getJSON(getmysubevents);
+
+            }
+        });
+
+
+        maineventslistinfo.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                TextView isImage = view.findViewById(R.id.id);
+                TextView isMap = view.findViewById(R.id.addinfo);
+                String getImage = isImage.getText().toString();
+                String getMap = isMap.getText().toString();
+                sOut("is map: " + getMap);
+                if (getMap.contains("http")) {
+                    Intent browserIntent = new
+                            Intent(Intent.ACTION_VIEW, Uri.parse(getMap));
+                    startActivity(browserIntent);
+                    sOut("is map: " + getMap);
+
+                }
+
+                if (getMap.contains("area")) {
+                    sOut("AREA");
+                    showListDialog();
+                }
+
+                if (getImage.contains("http") && getImage.contains("jpg")) {
+                    Intent intent = new Intent(context, map.class);
+                    intent.putExtra("maplink", getImage);
+                    startActivity(intent);
+
+                }
+            }
+        });
+        if (status.length() == 0) {
             masterLL.setVisibility(View.GONE);
             //playerLL.setVisibility(View.GONE);
             anketa.setVisibility(View.VISIBLE);
         }
 
-        if (status.equals("player"))
-        {
+        if (status.equals("player")) {
 
         }
-        if (status.equals("master"))
-        {
+        if (status.equals("master")) {
             masterLL.setVisibility(View.VISIBLE);
-            mastername.setText(settings.getString(FIO,""));
+            mastername.setText(settings.getString(FIO, ""));
 
-            String _approve=settings.getString(APPROVED,"");
-            if (_approve.equals("0"))
-            {
+            String _approve = settings.getString(APPROVED, "");
+            if (_approve.equals("0")) {
                 masterapprove.setText("Статус мастера пока не одобрен");
                 masterapprove.setTextColor(getResources().getColor(R.color.red));
-            }
-            else
-            {
+            } else {
                 masterapprove.setText("Статус мастера одобрен");
                 masterapprove.setTextColor(getResources().getColor(R.color.black));
             }
@@ -187,20 +270,23 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
             maineventslist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    TextView isID=view.findViewById(R.id.eventid);
+                    TextView isID = view.findViewById(R.id.eventid);
                     eventID = isID.getText().toString();
-                    geteventinfo="http://a0568345.xsph.ru/demiorg/geteventinfo.php/get.php?dp="+eventID;
+                    geteventinfo = "http://a0568345.xsph.ru/demiorg/geteventinfo.php/get.php?dp=" + eventID;
                     sOut(geteventinfo);
+                    getonlyareas = "http://a0568345.xsph.ru/demiorg/getonlyareas.php/get.php?nom=" + eventID;
+                    getJSON(getonlyareas);
+                    sOut(getonlyareas);
                     getJSON(geteventinfo);
-                                    }
+                }
             });
             NavMasterPanel();
         }
-        if (status.length()<1)
-        {toolbar.setVisibility(View.GONE);
-        toolbartext.setText("Регистрация");
-        startanket.setText("АНКЕТА");
-        anketa.setVisibility(View.VISIBLE);
+        if (status.length() < 1) {
+            toolbar.setVisibility(View.GONE);
+            toolbartext.setText("Регистрация");
+            startanket.setText("АНКЕТА");
+            anketa.setVisibility(View.VISIBLE);
         }
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
@@ -217,7 +303,7 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
     }
 
     private void startLoad() {
-        if (settings.getString(STATUS,"").equals("master")) {
+        if (settings.getString(STATUS, "").equals("master")) {
             try {
                 getmaster = "http://a0568345.xsph.ru/demiorg/getmaster.php/get.php?dp=" + RTStoJSON(settings.getString(EMAIL, ""));
 
@@ -228,7 +314,7 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
             getJSON(getmaster);
         }
 
-        if (settings.getString(STATUS,"").equals("player")) {
+        if (settings.getString(STATUS, "").equals("player")) {
             try {
                 getplayer = "http://a0568345.xsph.ru/demiorg/getplayer.php/get.php?dp=" + RTStoJSON(settings.getString(EMAIL, ""));
                 sOut(getplayer);
@@ -237,7 +323,6 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
             }
             getJSON(getplayer);
         }
-
 
 
     }
@@ -349,8 +434,7 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
 //    }
 
 
-    private void NavMasterPanel()
-    {
+    private void NavMasterPanel() {
 
         Drawer.Result build = new Drawer()
                 .withActivity(this)
@@ -358,12 +442,13 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
                 .withActionBarDrawerToggle(true)
                 .withHeader(R.layout.drawer_header)
                 .addDrawerItems(
-                        new PrimaryDrawerItem().withName(R.string.drawer_item_home).withIcon(getResources().getDrawable( R.drawable.header)).withIdentifier(1),
-                        new PrimaryDrawerItem().withName(R.string.drawer_item_free_play).withIcon(FontAwesome.Icon.faw_map_marker),
+                        new PrimaryDrawerItem().withName(R.string.drawer_item_home).withIcon(getResources().getDrawable(R.drawable.header)).withIdentifier(1),
+                        new PrimaryDrawerItem().withName(R.string.drawer_item_my_subevents).withIcon(FontAwesome.Icon.faw_map_marker),
+                        new PrimaryDrawerItem().withName(R.string.drawer_item_all_subevents).withIcon(FontAwesome.Icon.faw_map_marker),
                         new SectionDrawerItem().withName(R.string.drawer_item_settings),
                         new SecondaryDrawerItem().withName(R.string.drawer_item_contact).withIcon(FontAwesome.Icon.faw_phone).withIdentifier(1),
-        new DividerDrawerItem(),
-                        new SecondaryDrawerItem().withName(R.string.drawer_item_help).withIcon(FontAwesome.Icon. faw_arrow_circle_left)
+                        new DividerDrawerItem(),
+                        new SecondaryDrawerItem().withName(R.string.drawer_item_help).withIcon(FontAwesome.Icon.faw_arrow_circle_left)
 
                 )
                 .withOnDrawerListener(new Drawer.OnDrawerListener() {
@@ -376,6 +461,7 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
 //                            }
 //                        }
                     }
+
                     @Override
                     public void onDrawerClosed(View drawerView) {
                     }
@@ -385,16 +471,19 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
                     // Обработка клика
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id, IDrawerItem drawerItem) {
                         if (drawerItem instanceof Nameable) {
-                            sOut (""+position);
-                            if (position==1)
-                            {
-                              maineventslist.setVisibility(View.VISIBLE);
+                            sOut("" + position);
+                            if (position == 1) {
+                                maineventslist.setVisibility(View.VISIBLE);
                                 mainEventLL.setVisibility(View.VISIBLE);
-                              getJSON(getOnlyEvent);
+                                mysubeventsLL.setVisibility(View.GONE);
+                                getJSON(getOnlyEvent);
                             }
 
-                            if (position==2)
-                            {
+                            if (position == 3) {
+                                eventID = "";
+                                getJSON(getOnlyEvent);
+                                mainEventLL.setVisibility(View.GONE);
+                                mysubeventsLL.setVisibility(View.VISIBLE);
 //                                locationLL.setVisibility(View.VISIBLE);
 //                                eventsLL.setVisibility(View.GONE);
 //                                getJSON(getLocations);
@@ -404,8 +493,7 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
 
                             }
 
-                            if (position==6)
-                            {
+                            if (position == 7) {
                                 SharedPreferences.Editor editor = settings.edit();
                                 editor.clear();
                                 editor.apply();
@@ -413,11 +501,11 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
                                         new ResultCallback<Status>() {
                                             @Override
                                             public void onResult(Status status) {
-                                               sendToast("Выгрузка закончена");
-                                               toolbar.setVisibility(View.GONE);
-                                               anketa.setVisibility(View.VISIBLE);
-                                               masterLL.setVisibility(View.GONE);
-                                               toolbartext.setText("РЕГИСТРАЦИЯ");
+                                                sendToast("Выгрузка закончена");
+                                                toolbar.setVisibility(View.GONE);
+                                                anketa.setVisibility(View.VISIBLE);
+                                                masterLL.setVisibility(View.GONE);
+                                                toolbartext.setText("РЕГИСТРАЦИЯ");
                                             }
                                         });
 
@@ -454,9 +542,8 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
 
     }
 
-    private void sendToast(String message)
-    {
-        Toast.makeText(this, message,Toast.LENGTH_LONG).show();
+    private void sendToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -492,24 +579,21 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
     }
 
     private void doLogin() throws Exception {
-        String a_name=anketname.getText().toString();
-        String a_email=anketemail.getText().toString();
-        String a_phone=anketphone.getText().toString();
-        String a_addinfo=anketaddinfo.getText().toString();
+        String a_name = anketname.getText().toString();
+        String a_email = anketemail.getText().toString();
+        String a_phone = anketphone.getText().toString();
+        String a_addinfo = anketaddinfo.getText().toString();
 
-        if (a_name.length()==0 || a_email.length()==0 || a_phone.length()<8 || a_addinfo.length()==0)
-        {
+        if (a_name.length() == 0 || a_email.length() == 0 || a_phone.length() < 8 || a_addinfo.length() == 0) {
             sendToast("поля не заполнены или заполнены неверно");
             return;
         }
-        if (status)
-        {
-            new uploadAsyncTask().execute ("addmaster",RTS(a_name),RTS(a_email), RTS(a_phone), RTS(a_addinfo));
+        if (status) {
+            new uploadAsyncTask().execute("addmaster", RTS(a_name), RTS(a_email), RTS(a_phone), RTS(a_addinfo));
         }
 
-        if (!status)
-        {
-            new uploadAsyncTask().execute ("addplayer",RTS(a_name),RTS(a_email), RTS(a_phone), RTS(a_addinfo));
+        if (!status) {
+            new uploadAsyncTask().execute("addplayer", RTS(a_name), RTS(a_email), RTS(a_phone), RTS(a_addinfo));
         }
 
 
@@ -563,7 +647,7 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
 
         public void postData(String isUri, String post1, String post2, String post3, String post4) {
             HttpClient httpclient = new DefaultHttpClient();
-            String getUri = String.format(DOMAIN+ "%s.php", isUri);
+            String getUri = String.format(DOMAIN + "%s.php", isUri);
             HttpPost httppost = new HttpPost(getUri);
             try {
                 List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
@@ -574,11 +658,10 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
 //                nameValuePairs.add(new BasicNameValuePair("event",event ));
                 httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs, HTTP.UTF_8));
                 HttpResponse response = httpclient.execute(httppost);
-                sOut(getUri+", "+post1+", "+post2+", "+post3);
+                sOut(getUri + ", " + post1 + ", " + post2 + ", " + post3);
 
 
-                if (getUri.contains("addplayer"))
-                {
+                if (getUri.contains("addplayer")) {
                     try {
                         getplayer = "http://a0568345.xsph.ru/demiorg/getplayer.php/get.php?dp=" + RTStoJSON(email);
 
@@ -586,15 +669,18 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    getJSON(getplayer);}
+                    getJSON(getplayer);
+                }
 
-                if (getUri.contains("addmaster"))
-                {
-                    try {getmaster = "http://a0568345.xsph.ru/demiorg/getmaster.php/get.php?dp=" + RTStoJSON(email);sOut(getmaster);
-                    } catch (Exception e) {e.printStackTrace();}
-                    getJSON(getmaster);}
-
-
+                if (getUri.contains("addmaster")) {
+                    try {
+                        getmaster = "http://a0568345.xsph.ru/demiorg/getmaster.php/get.php?dp=" + RTStoJSON(email);
+                        sOut(getmaster);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    getJSON(getmaster);
+                }
 
 
             } catch (ClientProtocolException e) {
@@ -604,8 +690,8 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
 
         }
     }
-    public void sOut(String message)
-    {
+
+    public void sOut(String message) {
         System.out.println(message);
     }
 
@@ -621,21 +707,34 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
             @Override
             protected void onPostExecute(String s) {
                 super.onPostExecute(s);
-               // Log.d("dataJSON", "s is: "+s);
+                // Log.d("dataJSON", "s is: "+s);
 
                 if (s != null) {
                     try {
 
-                        if (urlWebService == getmaster) {loadMaster(s);}
+                        if (urlWebService == getmaster) {
+                            loadMaster(s);
+                        }
 
-                        if (urlWebService == getplayer) {loadPlayer(s);}
+                        if (urlWebService == getplayer) {
+                            loadPlayer(s);
+                        }
 
-                        if (urlWebService == getOnlyEvent) {loadOnlyEvent(s);}
+                        if (urlWebService == getOnlyEvent) {
+                            loadOnlyEvent(s);
+                        }
 
-                        if (urlWebService == geteventinfo) {loadeventinfo(s);}
+                        if (urlWebService == geteventinfo) {
+                            loadeventinfo(s);
+                        }
 
+                        if (urlWebService == getonlyareas) {
+                            loadareas(s);
+                        }
 
-
+                        if (urlWebService == getmysubevents) {
+                            loadmysubevents(s);
+                        }
 
 
                     } catch (JSONException e) {
@@ -674,59 +773,7 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
 
     private void loadMaster(String json) throws JSONException {
         JSONArray jsonArray = new JSONArray(json);
-        Log.d("MasterArray", "Array is: "+jsonArray);
-      //  PoligonsAdapter poligonsAdapter;
-        if (jsonArray.length() == 0) {
-            sendToast("Пользователь не найден, требуется" +
-                " заполнение анкеты");
-        toolbar.setVisibility(View.GONE);
-        toolbartext.setText("РЕГИСТРАЦИЯ");
-        anketa.setVisibility(View.VISIBLE);
-            return;
-        }
-           if (jsonArray.length() > 0) {
-              JSONObject obj = jsonArray.getJSONObject(0);
-               String name = (DTS(obj.getString("field1")));
-               String phone = (obj.getString("field2"));
-               String addinfo = (DTS(obj.getString("field3")));
-               String approved = obj.getString("field4");
-               SharedPreferences.Editor editor = settings.edit();
-               editor.putString(FIO, name);
-               editor.putString(PHONENUM, phone);
-               editor.putString(ADDINFO, addinfo);
-               editor.putString(APPROVED,approved);
-               editor.putString(STATUS,"master");
-               editor.apply();
-               toolbar.setVisibility(View.VISIBLE);
-               anketa.setVisibility(View.GONE);
-               toolbartext.setText("КОНСОЛЬ МАСТЕРА");
-
-               masterLL.setVisibility(View.VISIBLE); sOut("681");
-               mastername.setText(settings.getString(FIO,""));
-
-               String _approve=settings.getString(APPROVED,"");
-               if (_approve.equals("0"))
-               {
-                   masterapprove.setText("Статус мастера пока не одобрен");
-                   masterapprove.setTextColor(getResources().getColor(R.color.red));
-               }
-               else
-               {
-                   masterapprove.setText("Статус мастера одобрен");
-                   masterapprove.setTextColor(getResources().getColor(R.color.black));
-               }
-               NavMasterPanel();
-
-           }
-
-
-
-    }
-
-
-    private void loadPlayer(String json) throws JSONException {
-        JSONArray jsonArray = new JSONArray(json);
-        Log.d("PlayerArray", "Array is: "+jsonArray);
+        Log.d("MasterArray", "Array is: " + jsonArray);
         //  PoligonsAdapter poligonsAdapter;
         if (jsonArray.length() == 0) {
             sendToast("Пользователь не найден, требуется" +
@@ -738,21 +785,73 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
         }
         if (jsonArray.length() > 0) {
             JSONObject obj = jsonArray.getJSONObject(0);
+            String _id = obj.getString("id");
             String name = (DTS(obj.getString("field1")));
             String phone = (obj.getString("field2"));
             String addinfo = (DTS(obj.getString("field3")));
+            String approved = obj.getString("field4");
             SharedPreferences.Editor editor = settings.edit();
+            editor.putString(ID, _id);
             editor.putString(FIO, name);
             editor.putString(PHONENUM, phone);
             editor.putString(ADDINFO, addinfo);
-            editor.putString(STATUS,"master");
+            editor.putString(APPROVED, approved);
+            editor.putString(STATUS, "master");
+            editor.apply();
+            toolbar.setVisibility(View.VISIBLE);
+            anketa.setVisibility(View.GONE);
+            toolbartext.setText("КОНСОЛЬ МАСТЕРА");
+
+            masterLL.setVisibility(View.VISIBLE);
+            sOut("ID is:" + settings.getString(APPROVED, ""));
+            mastername.setText(settings.getString(FIO, ""));
+
+            String _approve = settings.getString(APPROVED, "");
+            if (_approve.equals("0")) {
+                masterapprove.setText("Статус мастера пока не одобрен");
+                masterapprove.setTextColor(getResources().getColor(R.color.red));
+            } else {
+                masterapprove.setText("Статус мастера одобрен");
+                masterapprove.setTextColor(getResources().getColor(R.color.black));
+            }
+            NavMasterPanel();
+
+        }
+
+
+    }
+
+
+    private void loadPlayer(String json) throws JSONException {
+        JSONArray jsonArray = new JSONArray(json);
+        Log.d("PlayerArray", "Array is: " + jsonArray);
+        //  PoligonsAdapter poligonsAdapter;
+        if (jsonArray.length() == 0) {
+            sendToast("Пользователь не найден, требуется" +
+                    " заполнение анкеты");
+            toolbar.setVisibility(View.GONE);
+            toolbartext.setText("РЕГИСТРАЦИЯ");
+            anketa.setVisibility(View.VISIBLE);
+            return;
+        }
+        if (jsonArray.length() > 0) {
+            JSONObject obj = jsonArray.getJSONObject(0);
+            String _id = obj.getString("id");
+            String name = (DTS(obj.getString("field1")));
+            String phone = DTS(obj.getString("field2"));
+            String addinfo = (DTS(obj.getString("field3")));
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString(ID, _id);
+            editor.putString(FIO, name);
+            editor.putString(PHONENUM, phone);
+            editor.putString(ADDINFO, addinfo);
+            editor.putString(STATUS, "master");
             editor.apply();
             toolbar.setVisibility(View.VISIBLE);
             anketa.setVisibility(View.GONE);
             toolbartext.setText("КОНСОЛЬ ИГРОКА");
 
         }
-
 
 
     }
@@ -766,29 +865,92 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
             return;
         }
         if (jsonArray.length() > 0) {
-            sOut(""+jsonArray);
+            sOut("" + jsonArray);
             ArrayList<MainList> mainLists = new ArrayList<>();
-            String [] id = new String[jsonArray.length()];
-            String [] name = new String[jsonArray.length()];
-            String [] info = new String[jsonArray.length()];
+            String[] id = new String[jsonArray.length()];
+            String[] name = new String[jsonArray.length()];
+            String[] info = new String[jsonArray.length()];
 
 
-           for (int i=0;i<jsonArray.length();i++)
-           {
-               JSONObject obj = jsonArray.getJSONObject(i);
-               id[i] = obj.getString("field1");
-               name[i] = DTS(obj.getString("field2"));
-               info[i] = obj.getString("field3");
-               mainLists.add(new MainList(id[i], name[i], info[i]));
-               sOut("positionID: " + mainLists.get(i).id);
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject obj = jsonArray.getJSONObject(i);
+                id[i] = obj.getString("field1");
+                name[i] = DTS(obj.getString("field2"));
+                info[i] = obj.getString("field3");
+                mainLists.add(new MainList(id[i], name[i], info[i]));
+                sOut("positionID: " + mainLists.get(i).id);
 
-           }
+            }
 
-           mainListAdapter=new MainListAdapter(context, mainLists,activity);
-           maineventslist.setAdapter(mainListAdapter);
+            mainListAdapter = new MainListAdapter(context, mainLists, activity);
+            maineventslist.setAdapter(mainListAdapter);
+            eventslistformysubevent.setAdapter(mainListAdapter);
 
         }
 
+
+    }
+
+    private void loadareas(String json) throws JSONException {
+        JSONArray jsonArray = new JSONArray(json);
+        commonlist.clear();
+        if (jsonArray.length() == 0) {
+
+            return;
+        }
+        if (jsonArray.length() > 0) {
+
+            sOut("commonlist " + jsonArray);
+            String[] id = new String[jsonArray.length()];
+            String[] name = new String[jsonArray.length()];
+
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject obj = jsonArray.getJSONObject(i);
+                id[i] = obj.getString("field1");
+                name[i] = (obj.getString("field2"));
+                commonlist.add(new MainList(id[i], name[i], ""));
+                sOut(commonlist.get(i).addinfo);
+            }
+
+            for (int i = 0; i < commonlist.size(); i++) {
+                sOut("Is commonlist data:" + commonlist.get(i).addinfo);
+            }
+
+
+        }
+
+
+    }
+
+    private void loadmysubevents(String json) throws JSONException {
+        JSONArray jsonArray = new JSONArray(json);
+        ArrayList<dataFour> mainLists = new ArrayList<>();
+        if (jsonArray.length() == 0) {
+
+            return;
+        }
+        if (jsonArray.length() > 0) {
+
+            sOut("commonlist " + jsonArray);
+            String[] id = new String[jsonArray.length()];
+            String[] name = new String[jsonArray.length()];
+
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject obj = jsonArray.getJSONObject(i);
+                id[i] = obj.getString("field1");
+                name[i] = (obj.getString("field2"));
+                commonlist.add(new MainList(id[i], name[i], ""));
+                sOut(commonlist.get(i).addinfo);
+            }
+
+            for (int i = 0; i < commonlist.size(); i++) {
+                sOut("Is commonlist data:" + commonlist.get(i).addinfo);
+            }
+
+
+        }
 
 
     }
@@ -813,23 +975,22 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
             data = DTS(obj.getString("field3"));
             dataFours.add(new dataFour("", "Описание: ", data, ""));
             data = obj.getString("field4");
-            dataFours.add(new dataFour("", "Место проведения: ", data, ""));
-            data = obj.getString("field5");
-            dataFours.add(new dataFour("", "Открыть на GoogleMaps ", "", data));
+            String link = obj.getString("field5");
+            sOut(link);
+            dataFours.add(new dataFour("", "Место проведения (открыть в навигаторе): ", data, link));
             data = obj.getString("field6");
             dataFours.add(new dataFour("", "Контакты организатора:", DTS(data), ""));
             data = obj.getString("field7");
-            dataFours.add(new dataFour(DTS(data), "Показать план размещения", "", ""));
+            dataFours.add(new dataFour(DTS(data), "", "Показать план размещения", ""));
+            dataFours.add(new dataFour("", "", "Показать список площадок", "areas"));
+
         }
 
-        dataFourAdapter =new dataFourAdapter(context, dataFours,activity);
+        dataFourAdapter = new dataFourAdapter(context, dataFours, activity);
         maineventslistinfo.setAdapter(dataFourAdapter);
 
 
-
-
     }
-
 
 
     private void handleSignInResult(GoogleSignInResult result, boolean _status) {
@@ -843,7 +1004,7 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
             anketname.setText(personName);
             anketemail.setText(email);
             SharedPreferences.Editor editor = settings.edit();
-            editor.putString(EMAIL,email);
+            editor.putString(EMAIL, email);
             editor.apply();
             sendToast("Авторизация прошла успешно");
             if (_status) {
@@ -880,15 +1041,15 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    private String RTS (String s) throws Exception {   byte[] encrypted = new byte[0];
-        encrypted = refact(s,api);
+    private String RTS(String s) throws Exception {
+        byte[] encrypted = new byte[0];
+        encrypted = refact(s, api);
         String rts = Base64.encodeToString(encrypted, Base64.DEFAULT);
-        rts= rts.substring(0,rts.length()-1);
+        rts = rts.substring(0, rts.length() - 1);
         return rts;
     }
 
-    private String DTS (String s)
-    {
+    private String DTS(String s) {
         String dts = null;
         try {
             dts = defact(Base64.decode(s, Base64.DEFAULT), api);
@@ -899,18 +1060,128 @@ public class aDemiOrgMain extends AppCompatActivity implements View.OnClickListe
     }
 
 
-
-    private String  RTStoJSON (String s) throws Exception {   byte[] encrypted = new byte[0];
-        encrypted = refact(s,api);
+    private String RTStoJSON(String s) throws Exception {
+        byte[] encrypted = new byte[0];
+        encrypted = refact(s, api);
         String rts = Base64.encodeToString(encrypted, Base64.DEFAULT);
-        rts= rts.substring(0,rts.length()-1);
-        rts = rts.replace("+","%2b");
-        rts = rts.replace("\\","%2b");
-        rts = rts.replace(",","%2c");
-        rts = rts.replace(":","%3a");
-        rts = rts.replace(";","%3b");
-        rts = rts.replace("?","%3f");
-        rts = rts.replace("@","40%");
+        rts = rts.substring(0, rts.length() - 1);
+        rts = rts.replace("+", "%2b");
+        rts = rts.replace("\\", "%2b");
+        rts = rts.replace(",", "%2c");
+        rts = rts.replace(":", "%3a");
+        rts = rts.replace(";", "%3b");
+        rts = rts.replace("?", "%3f");
+        rts = rts.replace("@", "40%");
         return rts;
     }
+
+    AlertDialog.Builder alert;
+    AlertDialog dialog;
+    Uri uri;
+    ListView dialoglist;
+
+    private void showListDialog() {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            alert = new AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert);
+        } else {
+            alert = new AlertDialog.Builder(this);
+        }
+        LayoutInflater inflater = getLayoutInflater();
+        View view = inflater.inflate(R.layout.showlistdialog, null);
+        dialoglist = view.findViewById(R.id.dialoglist);
+        Button dismiss = view.findViewById(R.id.dismiss);
+        MainListAdapter adapter = new MainListAdapter(this, commonlist, this);
+        dialoglist.setAdapter(adapter);
+        for (int i = 0; i < commonlist.size(); i++) {
+            sOut(commonlist.get(i).name);
+        }
+        alert.setView(view);
+        alert.setCancelable(false);
+        // mess.setText("Удалить сообщение?");
+        dialog = alert.create();
+
+
+        dismiss.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+
+        dialog.show();
+    }
+
+    public static ArrayList<MainList> itemsForEditText = new ArrayList<MainList>();
+
+    private void showListWithEditTextDialog() {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            alert = new AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert);
+        } else {
+            alert = new AlertDialog.Builder(this);
+        }
+        LayoutInflater inflater = getLayoutInflater();
+        View view = inflater.inflate(R.layout.showlistwithedittextdialog, null);
+        dialoglist=view.findViewById(R.id.dialoglistwithedittext);
+        Button dismiss = view.findViewById(R.id.dismiss);
+        Button createsubevent=view.findViewById(R.id.createsubevent);
+        MyAdapter myAdapter = new MyAdapter(this, itemsForEditText );
+        dialoglist.setAdapter(myAdapter);
+//        ArrayList<EditModel> editModelArrayList = populateList();
+//         CustomAdapter customeAdapter = new CustomAdapter(this,editModelArrayList);
+//  dialoglist.setAdapter(customeAdapter);
+
+        for (int i=0;i<commonlist.size();i++)
+        {
+            sOut(commonlist.get(i).name);
+        }
+        alert.setView(view);
+        alert.setCancelable(false);
+        // mess.setText("Удалить сообщение?");
+        dialog = alert.create();
+
+
+
+        dismiss.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        createsubevent.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+
+                         String upload="'"+itemsForEditText.get(0).addinfo+"', '"+itemsForEditText.get(1).addinfo+"','0', '"
+                        +itemsForEditText.get(2).addinfo+"', '"+itemsForEditText.get(3).addinfo+"', '"
+                        +itemsForEditText.get(4).addinfo+"', '"+itemsForEditText.get(5).addinfo+"', '"
+                        +itemsForEditText.get(6).addinfo+"', '"+itemsForEditText.get(7).addinfo+"', '"
+                        +itemsForEditText.get(8).addinfo+"', '"+itemsForEditText.get(9).addinfo+"', '"
+                        +eventID+"', '"+"0', '"+settings.getString(ID,"")+"', '"+"0'";
+
+                         sOut(upload);
+                         new uploadAsyncTask().execute("addsubevent", upload,"","","","");
+
+
+            }
+        });
+
+
+        dialog.show();
+    }
+
+    private ArrayList<EditModel> populateList(){
+        ArrayList<EditModel> list = new ArrayList<>();
+        for(int i = 0; i < 8; i++){
+            EditModel editModel = new EditModel();
+            editModel.setEditTextValue(String.valueOf(i));
+            list.add(editModel);
+        }
+        return list;
+    }
+
 }

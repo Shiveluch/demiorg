@@ -7,10 +7,17 @@
         <entry key="..\:/projects/demiorg/app/src/main/res/drawable/gradienttoolbar.xml" value="0.1" />
         <entry key="..\:/projects/demiorg/app/src/main/res/drawable/greystroke.xml" value="0.1" />
         <entry key="..\:/projects/demiorg/app/src/main/res/drawable/stroke.xml" value="0.1" />
-        <entry key="..\:/projects/demiorg/app/src/main/res/layout/ademiorgmain.xml" value="0.1" />
+        <entry key="..\:/projects/demiorg/app/src/main/res/layout/activity_map.xml" value="0.13405797101449277" />
+        <entry key="..\:/projects/demiorg/app/src/main/res/layout/ademiorgmain.xml" value="0.18" />
         <entry key="..\:/projects/demiorg/app/src/main/res/layout/commonfourfieldadapter.xml" value="0.33" />
         <entry key="..\:/projects/demiorg/app/src/main/res/layout/drawer_header.xml" value="0.1" />
+        <entry key="..\:/projects/demiorg/app/src/main/res/layout/itemwithedittext.xml" value="0.25" />
+        <entry key="..\:/projects/demiorg/app/src/main/res/layout/itemwithedittextlist.xml" value="0.13405797101449277" />
+        <entry key="..\:/projects/demiorg/app/src/main/res/layout/lv_item.xml" value="0.10729166666666666" />
         <entry key="..\:/projects/demiorg/app/src/main/res/layout/mainadapter.xml" value="0.33" />
+        <entry key="..\:/projects/demiorg/app/src/main/res/layout/mysubeventsadapter.xml" value="0.22" />
+        <entry key="..\:/projects/demiorg/app/src/main/res/layout/showlistdialog.xml" value="0.10416666666666667" />
+        <entry key="..\:/projects/demiorg/app/src/main/res/layout/showlistwithedittextdialog.xml" value="0.13405797101449277" />
       </map>
     </option>
   </component>

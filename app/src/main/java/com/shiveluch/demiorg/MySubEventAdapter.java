@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,19 +13,21 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class dataFourAdapter extends BaseAdapter {
+import androidx.core.content.ContextCompat;
+
+public class MySubEventAdapter extends BaseAdapter {
     Context ctx;
     LayoutInflater lInflater;
     ArrayList<dataFour> objects;
 
     protected ListView mListView;
-    public dataFourAdapter(Context context, ArrayList<dataFour> stalkers, Activity activity) {
+    public MySubEventAdapter(Context context, ArrayList<dataFour> stalkers, Activity activity) {
         super();
         ctx = context;
         objects = stalkers;
         lInflater = (LayoutInflater) ctx
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        mListView = activity.findViewById(R.id.maineventslist);
+        mListView = activity.findViewById(R.id.mysubeventslist);
     }
 
     // ???-?? ?????????
@@ -48,18 +51,20 @@ public class dataFourAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         View view = convertView;
         if (view == null) {
-            view = lInflater.inflate(R.layout.commonfourfieldadapter, parent, false);
+            view = lInflater.inflate(R.layout.mysubeventsadapter, parent, false);
         }
 
-        dataFour p = getdataFour(position);
-        ((TextView) view.findViewById(R.id.name)).setText(p.name);
-        ((TextView) view.findViewById(R.id.info)).setText(p.info);
-        ((TextView) view.findViewById(R.id.id)).setText(p.id);
-        ((TextView) view.findViewById(R.id.addinfo)).setText(p.additional);
-        if (p.name.length()<1)
-        {
-            ((TextView) view.findViewById(R.id.name)).setVisibility(View.GONE);
-        }
+        dataFour p = getMySubevent(position);
+        ((TextView) view.findViewById(R.id.subeventname)).setText(p.name);
+        ((TextView) view.findViewById(R.id.subeventinfo)).setText(p.info);
+        ((TextView) view.findViewById(R.id.subeventid)).setText(p.id);
+        ((TextView) view.findViewById(R.id.subeventapproved)).setText(p.additional);
+        if (p.additional.equals("0"))
+        {int color = Integer.parseInt("e50000", 16)+0xFF000000;
+            ((TextView) view.findViewById(R.id.subeventapproved)).setText("Мероприятие не одобрено");
+            ((TextView) view.findViewById(R.id.subeventapproved)).setTextColor(color);
+       }
+
         if (p.name.length()>1)
         {
             ((TextView) view.findViewById(R.id.name)).setVisibility(View.VISIBLE);
@@ -68,7 +73,7 @@ public class dataFourAdapter extends BaseAdapter {
         return view;
     }
 
-    dataFour getdataFour(int position) {
+    dataFour getMySubevent(int position) {
         return ((dataFour) getItem(position));
     }
 
